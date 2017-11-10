@@ -13,6 +13,7 @@ public class Client implements Runnable {
 	private BufferedReader in;
 	private Thread thread;
 	private Server parentServer;
+	private String nickname = "Anonymous";
 
 	public Client(Server parentServer, Socket socket) throws IOException {
 		this.socket = socket;
@@ -53,9 +54,6 @@ public class Client implements Runnable {
 				
 				parentServer.onClientMessage(this, message);
 				
-				//TODO Temporaire
-				write("ECHO -> " + message);
-				
 			} catch (IOException e) {
 				System.err.println("[Server][" + socket.getInetAddress() + "] Error while receiving message");
 			}
@@ -89,6 +87,10 @@ public class Client implements Runnable {
 		}catch (Exception e) {
 			return false;
 		}
+	}
+
+	public String getNickname() {
+		return this.nickname ;
 	}
 
 }

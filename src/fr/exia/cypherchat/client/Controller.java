@@ -47,9 +47,9 @@ public class Controller implements ModelListener, ViewListener {
 		    System.out.println("[Client] Message received: " + received);
 		    
 		    // Fermeture
-		    System.out.println("[Client] Fermeture");
 		    out.close();
 		    sock.close();
+		    System.out.println("[Client] Fermeture");
 		}
 		catch (Exception e) {
 			System.err.println("[Client] Impossible de se connecter");

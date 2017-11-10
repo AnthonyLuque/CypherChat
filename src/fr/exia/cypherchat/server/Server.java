@@ -36,14 +36,51 @@ public class Server implements Runnable {
 		System.out.println("[Server] Listening at port " + this.port);
 	}
 	
+	
 	public void onClientMessage(Client client, String message) {
 		// Log
-		System.out.println("[Server][" + client.getSocket().getInetAddress() + "] Received message: " + message);		
+		System.out.println("[Server][" + client.getSocket().getInetAddress() + "] Received message: " + message);	
+		
+		// Propager le message à tous les clients
+		broadcastMessage(client, message);
 	}
 	
+	
+	public void broadcastMessage(Client client, String message) {
+		// On créé la trame
+		String data = "MSG;";
+		data += client.getNickname();
+		data += ";";
+		data += (long)(System.currentTimeMillis() / 1000);
+		data += ";";
+		data += client.getSocket().getInetAddress();
+		data += ";";
+		data += message;
+		
+		//On l'envoie à tout le monde
+		broadcast(data);
+	}
+
+	public void broadcast(String message){
+		ArrayList<Client> copyConnectedClients;
+		synchronized (this.connectedClients) {
+			copyConnectedClients = new ArrayList<>(this.connectedClients);
+		}
+		
+		// On envoie le message à l'ensemble des clients
+		for(Client client : copyConnectedClients){
+			client.write(message);
+		}
+	}
+
 	public void onClientDisconnected(Client client) {
 		// Log
 		System.out.println("[Server][" + client.getSocket().getInetAddress() + "] Client was disconnected");
+		
+		// Retirer le client de la liste
+		synchronized (this.connectedClients) {
+			this.connectedClients.remove(client);
+		}
 	}
 	
 
@@ -69,9 +106,13 @@ public class Server implements Runnable {
 				// On lance le thread qui va lire les données arrivant sur le
 				// socket du client
 				client.startPollingThread();
-
+				
 				// On sauvegarde le client
-				this.connectedClients.add(client);
+				synchronized (this.connectedClients) {
+					this.connectedClients.add(client);
+				}
+
+				
 			} catch (IOException e) {
 				System.err.println("[Server] Client initialization error");
 				e.printStackTrace();
