@@ -60,18 +60,18 @@ public class ClientWindow extends JFrame {
 		GroupLayout gl_contentPane = new GroupLayout(contentPane);
 		gl_contentPane.setHorizontalGroup(
 			gl_contentPane.createParallelGroup(Alignment.LEADING)
-				.addComponent(panelBottom, GroupLayout.DEFAULT_SIZE, 712, Short.MAX_VALUE)
+				.addComponent(panelBottom, GroupLayout.DEFAULT_SIZE, 706, Short.MAX_VALUE)
 				.addGroup(gl_contentPane.createSequentialGroup()
-					.addComponent(panelLeft, GroupLayout.PREFERRED_SIZE, 164, GroupLayout.PREFERRED_SIZE)
+					.addComponent(panelLeft, GroupLayout.PREFERRED_SIZE, 188, GroupLayout.PREFERRED_SIZE)
 					.addPreferredGap(ComponentPlacement.RELATED)
-					.addComponent(panelCenter, GroupLayout.DEFAULT_SIZE, 542, Short.MAX_VALUE))
+					.addComponent(panelCenter, GroupLayout.DEFAULT_SIZE, 509, Short.MAX_VALUE))
 		);
 		gl_contentPane.setVerticalGroup(
-			gl_contentPane.createParallelGroup(Alignment.LEADING)
-				.addGroup(Alignment.TRAILING, gl_contentPane.createSequentialGroup()
-					.addGroup(gl_contentPane.createParallelGroup(Alignment.LEADING)
-						.addComponent(panelCenter, GroupLayout.DEFAULT_SIZE, 384, Short.MAX_VALUE)
-						.addComponent(panelLeft, Alignment.TRAILING, GroupLayout.DEFAULT_SIZE, 384, Short.MAX_VALUE))
+			gl_contentPane.createParallelGroup(Alignment.TRAILING)
+				.addGroup(gl_contentPane.createSequentialGroup()
+					.addGroup(gl_contentPane.createParallelGroup(Alignment.TRAILING)
+						.addComponent(panelLeft, GroupLayout.DEFAULT_SIZE, 363, Short.MAX_VALUE)
+						.addComponent(panelCenter, GroupLayout.DEFAULT_SIZE, 363, Short.MAX_VALUE))
 					.addPreferredGap(ComponentPlacement.RELATED)
 					.addComponent(panelBottom, GroupLayout.PREFERRED_SIZE, 42, GroupLayout.PREFERRED_SIZE))
 		);
