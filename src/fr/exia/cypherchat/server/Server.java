@@ -11,43 +11,103 @@ public class Server implements Runnable {
 	private int port;
 	private ServerSocket socket;
 	private Thread acceptThread;
-
+	
 	private List<Client> connectedClients;
 
 	public Server(int port) {
-		// On vÈrifie que le port est valide selon la lÈgislation
 		if (port < 1 || port > 65535) {
 			throw new IllegalArgumentException("Invalid port");
 		}
 		this.port = port;
 		this.connectedClients = new ArrayList<>();
 	}
-
+	
 	public void start() throws IOException {
-		// On ouvre le socket sur le port donnÈe
+		// On ouvre le socket sur le port donn√©e
 		this.socket = new ServerSocket(this.port);
-
-		// On fabrique un thread qui va boucler en permanence et accepter les
-		// nouvelles connexions
+		// On fabrique un thread qui va boucler en permanence
+		// et accepter les nouvelles connexions.
 		this.acceptThread = new Thread(this);
 		this.acceptThread.start();
-
 		// Log
 		System.out.println("[Server] Listening at port " + this.port);
 	}
-	
-	
-	public void onClientMessage(Client client, String message) {
-		// Log
-		System.out.println("[Server][" + client.getSocket().getInetAddress() + "] Received message: " + message);	
-		
-		// Propager le message ‡ tous les clients
-		broadcastMessage(client, message);
+
+	@Override
+	public void run() {
+		// On boucle ind√©finiement
+		while (true) {
+			try {
+				// Cette m√©thode sert √† attendre la connexion d'un
+				// nouveau client. Elle bloquera jusqu'√† l'arriv√©e
+				// d'une connexion. Quand un client se connectera,
+				// la m√©thode renverra le socket de connexion au
+				// client.
+				Socket s = socket.accept();
+				// Arriv√© ici, cela signifie qu'une connexion a √©t√©
+				// re√ßue sur le port du serveur.
+				System.out.println("[Server] Connection received from "
+						+ s.getInetAddress());
+				// Cr√©er un objet pour r√©pr√©senter le client
+				Client c = new Client(this, s);
+				// On lance le thread qui se charge de lire les
+				// donn√©es qui arrivent sur le socket.
+				c.startPollingThread();
+				// Je sauvegarde mon client maintenant qu'il est
+				// bien initialis√©.
+				synchronized (this.connectedClients) {
+					this.connectedClients.add(c);
+				}
+			}
+			catch (IOException e) {
+				System.err.println("[Server] Client initialization error");
+				e.printStackTrace();
+			}
+		}
 	}
-	
-	
+
+	public void onClientDisconnected(Client client) {
+		// Log
+		System.out.println("[Server][" + client.getSocket().getInetAddress()
+			+ "] Client has just been disconnected");
+		// Retirer le client de la liste des clients connect√©s
+		synchronized (this.connectedClients) {
+			this.connectedClients.remove(client);
+		}
+	}
+
+	public void onClientRawDataReceived(Client client, String message) {
+		// Log
+		System.out.println("[Server][" + client.getSocket().getInetAddress()
+			+ "] Received data: " + message);
+		
+		if (message.length() < 3) {
+			System.err.println("[Server] Invalid RAW data");
+			return;
+		}
+		
+		String opcode = message.substring(0, 4);
+		
+		switch (opcode) {
+		case "MSG;" :
+			// Propager le message √† tous les clients
+			broadcastMessage(client, message.substring(4));
+			break;
+		case "NCK;" :
+			// Changer le nickname du client
+			client.setNickname(message.substring(4));
+			// TODO A supprimer
+			System.out.println("Nickname changed: " + client.getNickname());
+			break;
+		default :
+			System.err.println("[Server] Invalid OPCODE : " + opcode);
+			return;
+		}
+		
+	}
+
 	public void broadcastMessage(Client client, String message) {
-		// On crÈÈ la trame
+		// Protocole
 		String data = "MSG;";
 		data += client.getNickname();
 		data += ";";
@@ -56,68 +116,23 @@ public class Server implements Runnable {
 		data += client.getSocket().getInetAddress();
 		data += ";";
 		data += message;
-		
-		//On l'envoie ‡ tout le monde
+		// Broadcast
 		broadcast(data);
 	}
 
-	public void broadcast(String message){
-		ArrayList<Client> copyConnectedClients;
+	public void broadcast(String message) {
+		
+		// On effectue une copie de la liste
+		ArrayList<Client> copy;
 		synchronized (this.connectedClients) {
-			copyConnectedClients = new ArrayList<>(this.connectedClients);
+			 copy = new ArrayList<>(this.connectedClients);
 		}
 		
-		// On envoie le message ‡ l'ensemble des clients
-		for(Client client : copyConnectedClients){
+		// On parcours l'ensemble des clients
+		for (Client client : copy) {
+			// Et on leur envoie le message
 			client.write(message);
 		}
 	}
-
-	public void onClientDisconnected(Client client) {
-		// Log
-		System.out.println("[Server][" + client.getSocket().getInetAddress() + "] Client was disconnected");
-		
-		// Retirer le client de la liste
-		synchronized (this.connectedClients) {
-			this.connectedClients.remove(client);
-		}
-	}
 	
-
-	@Override
-	public void run() {
-		// On boucle indÈfiniement (tant que l'application tourne)
-		while (true) {
-			try {
-				// Cette mÈthode sert ‡† attendre la connexion d'un nouveau
-				// client.
-				// (Elle bloquera jusqu'‡† l'arrivÈe d'une connexion. Quand un
-				// client se connectera, la mÈthode renverra le socket de
-				// connexion au client.)
-				Socket socketClient = socket.accept();
-
-				// ArrivÈ ici, cela signifie qu'une connexion a ÈtÈ reÁue sur le
-				// port du serveur
-				System.out.println("[Server] Connection received from " + socketClient.getInetAddress());
-
-				// CrÈer un objet pour reprÈsenter le client
-				Client client = new Client(this, socketClient);
-
-				// On lance le thread qui va lire les donnÈes arrivant sur le
-				// socket du client
-				client.startPollingThread();
-				
-				// On sauvegarde le client
-				synchronized (this.connectedClients) {
-					this.connectedClients.add(client);
-				}
-
-				
-			} catch (IOException e) {
-				System.err.println("[Server] Client initialization error");
-				e.printStackTrace();
-			}
-		}
-	}
-
 }

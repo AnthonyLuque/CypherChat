@@ -31,25 +31,24 @@ public class Controller implements ModelListener, ViewListener {
 		// TODO Auto-generated method stub
 		System.out.println("On envoie le message " + message);
 		
-		// TODO Code de test, à  supprimer !
+		// TODO Code de test, Ã  supprimer !
 		try {
-			// Ouverture
+			// Ouverture de la connexion au serveur
 			Socket sock = new Socket("localhost", 500);
-		    PrintWriter out = new PrintWriter(sock.getOutputStream(), true);
-		    
-		    // Envoie du message
-		    out.println(message);
-		    
-		    // Réceptionner le prochain message
-		    BufferedReader in = new BufferedReader(new InputStreamReader(sock.getInputStream()));
-		    
-		    String received = in.readLine();
-		    System.out.println("[Client] Message received: " + received);
-		    
-		    // Fermeture
-		    out.close();
-		    sock.close();
-		    System.out.println("[Client] Fermeture");
+			// Envoi du message
+			PrintWriter out = new PrintWriter(sock.getOutputStream(), true);
+			// RÃ©ceptionner le prochain message
+			BufferedReader in = new BufferedReader(
+		            new InputStreamReader(sock.getInputStream()));
+			out.println("NCK;JeanJean");
+			out.println("MSG;" + message);
+			String rcvd = in.readLine();
+			System.out.println("[Client] Message received: " + rcvd);
+			// Fermeture
+			Thread.sleep(3000);
+			out.close();
+			sock.close();
+			System.out.println("[Client] Fermeture");
 		}
 		catch (Exception e) {
 			System.err.println("[Client] Impossible de se connecter");

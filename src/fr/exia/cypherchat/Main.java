@@ -32,16 +32,16 @@ public class Main {
 					UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 				} catch (Exception e) { }
 				
-				// Créer la fenètre
+				// CrÃ©er la fenÃªtre
 				ClientWindow view = new ClientWindow();
 				
-				// Créer le modèle
+				// CrÃ©er le modÃ¨le
 				Model model = new Model();
 				
-				// Créer le controller
+				// CrÃ©er le controller
 				Controller ctrl = new Controller(model, view);
 				
-				// Afficher la fenètre
+				// Afficher la fenÃªtre
 				view.setVisible(true);
 			}
 		});

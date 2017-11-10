@@ -67,10 +67,10 @@ public class Model {
 	}
 	
 	public void notifyEvent(String methodName, Object... args) {
-		// Les trois petits points sont une élipse
+		// Les trois petits points sont une Ã©lipse
 		// Object...   =   Object[n]
 		
-		// Chercher la bonne méthode dans l'interface
+		// Chercher la bonne mÃ©thode dans l'interface
 		Method methodCall = null;
 		for (Method method : ModelListener.class.getMethods()) {
 			if (methodName.equals(method.getName())) {
@@ -85,7 +85,7 @@ public class Model {
 		
 		// Parcourir les listeners
 		for (ModelListener listener : this.listeners) {
-			// Appeler la méthode sur le listener
+			// Appeler la mÃ©thode sur le listener
 			try {
 				methodCall.invoke(listener, args);
 			}

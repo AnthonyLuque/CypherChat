@@ -8,25 +8,34 @@ import java.net.Socket;
 
 public class Client implements Runnable {
 
+	private Server parent;
 	private Socket socket;
 	private PrintWriter out;
 	private BufferedReader in;
 	private Thread thread;
-	private Server parentServer;
-	private String nickname = "Anonymous";
+	private String nickname = "anonymous";
 
-	public Client(Server parentServer, Socket socket) throws IOException {
+	public Client(Server parent, Socket socket) throws IOException {
+		// Je mémorise le socket et le seveur parent
+		this.parent = parent;
 		this.socket = socket;
-		this.parentServer = parentServer;
-		
-	    this.out = new PrintWriter(socket.getOutputStream(), true);
-	    this.in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+		// J'initialise le flux de sortie (write)
+		this.out =
+		        new PrintWriter(socket.getOutputStream(), true);
+		// J'initialise le flux d'entrée (read)
+		this.in =
+		        new BufferedReader(
+		            new InputStreamReader(socket.getInputStream()));
 	}
 	
 	public Socket getSocket() {
 		return this.socket;
 	}
 
+	public Server getParentServer() {
+		return this.parent;
+	}
+	
 	public void startPollingThread() {
 		this.thread = new Thread(this);
 		this.thread.start();
@@ -34,63 +43,65 @@ public class Client implements Runnable {
 
 	@Override
 	public void run() {
-		// On boucle ind�finiement (tant que l'application tourne)
+		String message;
+		// Tant que l'application tourne
 		while (true) {
-			
-			// Lecture des donn�es arrivant sur le socket
-			String message;
+			// Lire this.in pour avoir la prochaine ligne
 			try {
-				
-				message = this.in.readLine(); // (Bloquant jusqu'� la reception de la prochaine ligne)
-				
-				if(message == null) {
-					parentServer.onClientDisconnected(this);
-					
-					//Fermer le socket et le thread du polling
+				// Ecoute active sur le flux d'entrée
+				message = this.in.readLine();
+				// Le client vient de se déconnecter !
+				if (message == null) {
+					// On prévient la classe Server
+					parent.onClientDisconnected(this);
+					// Fermer le socket et le thread de polling
 					close();
-
+					// Et on arrête le thread
 					return;
 				}
 				
-				parentServer.onClientMessage(this, message);
-				
-			} catch (IOException e) {
-				System.err.println("[Server][" + socket.getInetAddress() + "] Error while receiving message");
+				// On prévient la classe Server
+				parent.onClientRawDataReceived(this, message);
 			}
-			
+			catch (IOException e) {
+				System.err.println("[Server][" + socket.getInetAddress()
+					+ "] Error while receiving message");
+			}
 		}
 	}
 	
-	public boolean write(String data){
+	public boolean write(String data) {
 		try {
 			this.out.println(data);
 			return true;
-		} catch (Exception e) {
+		}
+		catch (Exception ex) {
 			return false;
 		}
 	}
 	
-	public boolean close(){
-		try{
-			// Arr�ter le thread
-			thread.interrupt();
-			
+	public boolean close() {
+		try {
+			// Arrêter le thread
+			this.thread.interrupt();
 			// Fermer les flux
 			this.in.close();
 			this.out.close();
-			
-			// Fermer la socket
+			// Fermer le socket
 			this.socket.close();
-			
 			return true;
-			
-		}catch (Exception e) {
+		}
+		catch (Exception ex) {
 			return false;
 		}
 	}
 
 	public String getNickname() {
 		return this.nickname ;
+	}
+
+	public void setNickname(String nickname) {
+		this.nickname = nickname;
 	}
 
 }
