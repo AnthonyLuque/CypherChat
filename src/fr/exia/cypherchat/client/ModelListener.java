@@ -2,13 +2,13 @@ package fr.exia.cypherchat.client;
 
 public interface ModelListener {
 	
-	// Quand on est connectÃ©/dÃ©connectÃ© du serveur
+	// Quand on est connecté/déconnecté du serveur
 	public void onServerConnectionChanged(boolean status);
 	
 	// Quand un utilisateur se connecte au chat
-	public void onUserConnected(String nickname, String ip, boolean newConnection);
+	public void onUserConnected(String nickname, String ip/*, boolean newConnection*/);
 	
-	// Quand un utilisateur se dÃ©connecte du chat
+	// Quand un utilisateur se déconnecte du chat
 	public void onUserDisconnected(String nickname, String ip);
 	
 	// Quand un utilisateur envoie un message dans le chat

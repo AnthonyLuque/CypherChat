@@ -35,29 +35,24 @@ public class Server implements Runnable {
 
 	@Override
 	public void run() {
-		// On boucle indÃ©finiement
+		// On boucle indéfiniement
 		while (true) {
 			try {
-				// Cette mÃ©thode sert Ã  attendre la connexion d'un
-				// nouveau client. Elle bloquera jusqu'Ã  l'arrivÃ©e
-				// d'une connexion. Quand un client se connectera,
-				// la mÃ©thode renverra le socket de connexion au
-				// client.
+				// Cette méthode sert à attendre la connexion d'un nouveau client.
+				// (Elle bloquera jusqu'à  l'arrivée d'une connexion. Quand un client se connectera, la méthode renverra le socket de connexion au client.)
 				Socket s = socket.accept();
-				// ArrivÃ© ici, cela signifie qu'une connexion a Ã©tÃ©
-				// reÃ§ue sur le port du serveur.
-				System.out.println("[Server] Connection received from "
-						+ s.getInetAddress());
-				// CrÃ©er un objet pour rÃ©prÃ©senter le client
+				// Arrivé ici, cela signifie qu'une connexion a été reçue sur le port du serveur.
+				System.out.println("[Server] Connection received from " + s.getInetAddress());
+				// Créer un objet pour représenter le client
 				Client c = new Client(this, s);
-				// On lance le thread qui se charge de lire les
-				// donnÃ©es qui arrivent sur le socket.
+				// On lance le thread qui se charge de lire les données qui arrivent sur le socket.
 				c.startPollingThread();
-				// Je sauvegarde mon client maintenant qu'il est
-				// bien initialisÃ©.
+				// Je sauvegarde mon client maintenant qu'il est bien initialisé
 				synchronized (this.connectedClients) {
 					this.connectedClients.add(c);
 				}
+				// On envoie la liste des clients connectés à ce nouveau client
+				this.sendConnectedClients(c);
 			}
 			catch (IOException e) {
 				System.err.println("[Server] Client initialization error");
@@ -68,18 +63,30 @@ public class Server implements Runnable {
 
 	public void onClientDisconnected(Client client) {
 		// Log
-		System.out.println("[Server][" + client.getSocket().getInetAddress()
-			+ "] Client has just been disconnected");
-		// Retirer le client de la liste des clients connectÃ©s
+		System.out.println("[Server][" + client.getSocket().getInetAddress() + "] Client has just been disconnected");
+		
+		// Retirer le client de la liste des clients connectés
 		synchronized (this.connectedClients) {
 			this.connectedClients.remove(client);
 		}
+		
+		// On prévient tous les clients connectés
+		broadcastClientDisconnected(client);
+	}
+
+	private void broadcastClientDisconnected(Client client) {
+		// Protocole : DNT;Nickname;IP
+		String data = "MSG;";
+		data += client.getNickname();
+		data += ";";
+		data += client.getSocket().getInetAddress();
+		// Broadcast
+		broadcast(data);
 	}
 
 	public void onClientRawDataReceived(Client client, String message) {
 		// Log
-		System.out.println("[Server][" + client.getSocket().getInetAddress()
-			+ "] Received data: " + message);
+		System.out.println("[Server][" + client.getSocket().getInetAddress() + "] Received data: " + message);
 		
 		if (message.length() < 3) {
 			System.err.println("[Server] Invalid RAW data");
@@ -90,15 +97,17 @@ public class Server implements Runnable {
 		
 		switch (opcode) {
 		case "MSG;" :
-			// Propager le message Ã  tous les clients
+			// Propager le message à tous les clients
 			broadcastMessage(client, message.substring(4));
 			break;
+			
 		case "NCK;" :
 			// Changer le nickname du client
 			client.setNickname(message.substring(4));
 			// TODO A supprimer
 			System.out.println("Nickname changed: " + client.getNickname());
 			break;
+			
 		default :
 			System.err.println("[Server] Invalid OPCODE : " + opcode);
 			return;
@@ -107,7 +116,7 @@ public class Server implements Runnable {
 	}
 
 	public void broadcastMessage(Client client, String message) {
-		// Protocole
+		// Protocole : MSG;Nickname;Time;IP;Message
 		String data = "MSG;";
 		data += client.getNickname();
 		data += ";";
@@ -120,7 +129,7 @@ public class Server implements Runnable {
 		broadcast(data);
 	}
 
-	public void broadcast(String message) {
+	public void broadcast(String data) {
 		
 		// On effectue une copie de la liste
 		ArrayList<Client> copy;
@@ -131,8 +140,49 @@ public class Server implements Runnable {
 		// On parcours l'ensemble des clients
 		for (Client client : copy) {
 			// Et on leur envoie le message
-			client.write(message);
+			client.write(data);
 		}
 	}
+	
+	public void sendConnectedClients(Client c){
+		// On effectue une copie de la liste
+		ArrayList<Client> copy;
+		synchronized (this.connectedClients) {
+			 copy = new ArrayList<>(this.connectedClients);
+		}
+		
+		// On parcours l'ensemble des clients
+		for (Client client : copy) {
+			// Protocole : CNT;Nickname;IP;NewConnection
+			String data = "CNT;";
+			data += client.getNickname();
+			data += ";";
+			data += client.getSocket().getInetAddress();
+			data += ";";
+			data += "false"; /* Client déjà connecté */
+			// On envoie le client connecté
+			c.write(data);
+		}
+	}
+	
+/*	
+	public String connectedClientsListToString() {
+		
+		// On effectue une copie de la liste
+		ArrayList<Client> copy;
+		synchronized (this.connectedClients) {
+			 copy = new ArrayList<>(this.connectedClients);
+		}
+		
+		// On créer la trame
+		String data = "CNT";
+		for (Client client : copy) {
+			data += ";";
+			data += client.getNickname();
+		}
+		
+		return data;
+	}
+*/
 	
 }

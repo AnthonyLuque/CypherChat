@@ -20,12 +20,9 @@ public class Client implements Runnable {
 		this.parent = parent;
 		this.socket = socket;
 		// J'initialise le flux de sortie (write)
-		this.out =
-		        new PrintWriter(socket.getOutputStream(), true);
-		// J'initialise le flux d'entrÃ©e (read)
-		this.in =
-		        new BufferedReader(
-		            new InputStreamReader(socket.getInputStream()));
+		this.out = new PrintWriter(socket.getOutputStream(), true);
+		// J'initialise le flux d'entrée (read)
+		this.in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 	}
 	
 	public Socket getSocket() {
@@ -48,24 +45,24 @@ public class Client implements Runnable {
 		while (true) {
 			// Lire this.in pour avoir la prochaine ligne
 			try {
-				// Ecoute active sur le flux d'entrÃ©e
+				// Ecoute active sur le flux d'entrée
 				message = this.in.readLine();
-				// Le client vient de se dÃ©connecter !
+				
+				// Le client vient de se déconnecter
 				if (message == null) {
-					// On prÃ©vient la classe Server
+					// On prévient la classe Server
 					parent.onClientDisconnected(this);
 					// Fermer le socket et le thread de polling
 					close();
-					// Et on arrÃªte le thread
+					// Et on arrête le thread
 					return;
 				}
 				
-				// On prÃ©vient la classe Server
+				// On prévient la classe Server
 				parent.onClientRawDataReceived(this, message);
 			}
 			catch (IOException e) {
-				System.err.println("[Server][" + socket.getInetAddress()
-					+ "] Error while receiving message");
+				System.err.println("[Server][" + socket.getInetAddress() + "] Error while receiving message");
 			}
 		}
 	}
@@ -79,10 +76,11 @@ public class Client implements Runnable {
 			return false;
 		}
 	}
+
 	
 	public boolean close() {
 		try {
-			// ArrÃªter le thread
+			// Arrêter le thread
 			this.thread.interrupt();
 			// Fermer les flux
 			this.in.close();

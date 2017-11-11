@@ -1,6 +1,7 @@
 package fr.exia.cypherchat.client;
 
 import java.awt.CardLayout;
+import java.awt.Component;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -79,7 +80,7 @@ public class ClientWindow extends JFrame {
 		nicknameField = new JTextField();
 		nicknameField.setHorizontalAlignment(SwingConstants.CENTER);
 		nicknameField.setFont(new Font("Tahoma", Font.PLAIN, 18));
-		nicknameField.setText("Bob");
+		nicknameField.setText("Anonymous");
 		nicknameField.setColumns(10);
 		nicknameField.setBorder(null);
 		nicknameField.setBackground(null);
@@ -141,13 +142,14 @@ public class ClientWindow extends JFrame {
 		panelCenter.add(scrollPane1, "name_852663272761764");
 		
 		messageArea = new JTextArea();
+		messageArea.setFont(new Font("Microsoft YaHei", Font.PLAIN, 13));
 		messageArea.setEditable(false);
 		scrollPane1.setViewportView(messageArea);
 		contentPane.setLayout(gl_contentPane);
 		
 		messageField.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				// Rï¿½cupï¿½rer le texte saisi dans le champ de texte
+				// Récupérer le texte saisi dans le champ de texte
 				String message = messageField.getText();
 				// Notifier l'event
 				notifyEvent("onMessageSent", message);
@@ -163,6 +165,28 @@ public class ClientWindow extends JFrame {
 		});
 	}
 	
+	
+	
+	
+	// METHODES DE MODIFICATION DE LA VUE
+	
+	public void setMessageArea(String nickname, String message){
+		this.messageArea.setText(this.messageArea.getText() + "\n" + nickname + " : " + message);
+	}
+	
+	public void addConnectedUser(String nickname){
+		// TODO Modifier la liste
+	}
+	
+	public void removeConnectedUser(String nickname){
+		// TODO Modifier la liste
+	}
+	
+	
+	
+	// METHODES DE L'OBSERVABLE
+	
+	
 	public void addListener(ViewListener listener) {
 		this.listeners.add(listener);
 	}
@@ -172,10 +196,10 @@ public class ClientWindow extends JFrame {
 	}
 	
 	public void notifyEvent(String methodName, Object... args) {
-		// Les trois petits points sont une Ã©lipse
+		// Les trois petits points sont une élipse
 		// Object...   =   Object[n]
 		
-		// Chercher la bonne mÃ©thode dans l'interface
+		// Chercher la bonne méthode dans l'interface
 		Method methodCall = null;
 		for (Method method : ViewListener.class.getMethods()) {
 			if (methodName.equals(method.getName())) {
@@ -202,5 +226,6 @@ public class ClientWindow extends JFrame {
 			}
 		}
 	}
+
 	
 }
