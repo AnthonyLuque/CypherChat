@@ -53,6 +53,8 @@ public class Server implements Runnable {
 				}
 				// On envoie la liste des clients connectés à ce nouveau client
 				this.sendConnectedClients(c);
+				// Log
+				System.out.println("[Server][" + c.getSocket().getInetAddress() + "] Client connected");
 			}
 			catch (IOException e) {
 				System.err.println("[Server] Client initialization error");

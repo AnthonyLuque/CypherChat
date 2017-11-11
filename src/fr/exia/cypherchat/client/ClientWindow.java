@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.swing.DefaultComboBoxModel;
+import javax.swing.DefaultListModel;
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
 import javax.swing.JComboBox;
@@ -37,6 +38,7 @@ public class ClientWindow extends JFrame {
 	protected JTextField nicknameField;
 	private JScrollPane scrollPane2;
 	private JList connectedUsersList;
+	private DefaultListModel listModel;
 	private JComboBox cypherComboBox;
 	private JTextArea messageArea;
 	
@@ -47,6 +49,8 @@ public class ClientWindow extends JFrame {
 	 */
 	public ClientWindow() {
 		this.listeners = new ArrayList<>();
+		listModel = new DefaultListModel();
+		
 		setTitle("CypherChat v1.0");
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setBounds(100, 100, 738, 480);
@@ -175,11 +179,13 @@ public class ClientWindow extends JFrame {
 	}
 	
 	public void addConnectedUser(String nickname){
-		// TODO Modifier la liste
+		listModel.addElement(nickname);
+		this.connectedUsersList.setModel(listModel);
 	}
 	
 	public void removeConnectedUser(String nickname){
-		// TODO Modifier la liste
+		listModel.removeElement(nickname);
+		this.connectedUsersList.setModel(listModel);
 	}
 	
 	
@@ -214,7 +220,7 @@ public class ClientWindow extends JFrame {
 		
 		// Parcourir les listeners
 		for (ViewListener listener : this.listeners) {
-			// Appeler la mÃ©thode sur le listener
+			// Appeler la méthode sur le listener
 			try {
 				methodCall.invoke(listener, args);
 			}
